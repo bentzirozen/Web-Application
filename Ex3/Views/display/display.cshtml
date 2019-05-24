@@ -1,12 +1,9 @@
 ﻿@{
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "display";
 }
-
-@{
-    ViewBag.Title = "Index";
-}
-<img id="map" src="export-map-share.png" style="height:100%;width:100%;border-width:0px;" />
+<img id="map" src="~/Image/export-map-share.png" style="height:100%;width:100%;border-width:0px;" />
 <canvas id="myCanvas" width="900" height="900" />
+<p>lat =  @Session["lat"] , lon = @Session["lon"] thr = @Session["thr"]</p>
 <script>
         var img = document.getElementById("map");
         var cnvs = document.getElementById("myCanvas");
@@ -15,10 +12,13 @@
         cnvs.style.top = img.offsetTop + "px";
         var ctx = cnvs.getContext("2d");
         ctx.beginPath();
-        ctx.arc( 200, 200, 4, 0, 2 * Math.PI);
+        ctx.arc( @Session["lat"],  @Session["lon"],4, 0, 2 * Math.PI);
         ctx.strokeStyle = "blue";
         ctx.fillStyle = 'red';
         ctx.fill();
         ctx.stroke();
+        setTimeout(function () {
+            window.location.reload(1);
+        }, 250);
 </script>
 

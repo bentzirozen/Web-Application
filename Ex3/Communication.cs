@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Ex3
@@ -16,7 +17,7 @@ namespace Ex3
         NetworkStream stream;
         TcpClient client; // client
         private TcpListener server; // server
-
+        private BinaryWriter writer;
         private BinaryReader reader; // reader
         public bool Stop { get; set; } = false;
         public bool Connected { get; set; } = false; // is the clinet connected?
@@ -37,42 +38,41 @@ namespace Ex3
         #endregion
 
         // open server with ip and port
-        public void Open(string ip, int port)
+        public void Connect(string ip, int port)
         {
-            if (server == null)
+            if (client != null) return;
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ip), port);
+            client = new TcpClient();
+            while (!client.Connected) // keep trynig to connect
             {
-                server = new TcpListener(new IPEndPoint(IPAddress.Parse(ip), port));
-                server.Start();
+                try { client.Connect(ep); }
+                catch (Exception) { }
             }
+            Connected = true;
+            writer = new BinaryWriter(client.GetStream());
+            stream = client.GetStream();
+
         }
-        public string[] read_from_simulator()
-        {
-            if (!Connected)
+        public int read_from_simulator(string command)
+        { //for empty fommands
+            stream = client.GetStream();
+            string x = "";
+            Byte[] data = Encoding.ASCII.GetBytes(command);
+            stream.Write(data, 0, data.Length);
+            // Receive the TcpServer.response.
+            // Buffer to store the response bytes.
+            data = new Byte[1024];
+            // String to store the response ASCII representation.
+            String responseData = String.Empty;
+            // Read the first batch of the TcpServer response bytes.
+            Int32 bytes = stream.Read(data, 0, data.Length);
+            responseData = Encoding.ASCII.GetString(data, 0, bytes);
+            x = Regex.Match(responseData, (@"[\-\+]\d+")).Value;
+            if (x == "")
             {
-                Connected = true;
-                client = server.AcceptTcpClient();
-                reader = new BinaryReader(client.GetStream());
+                x = Regex.Match(responseData, (@"\d+")).Value;
             }
-            char c;
-            string commands = "";
-            //read char by char into commands until enter
-            while ((c = reader.ReadChar()) != '\n')
-            {
-                commands += c;
-
-            }
-            if (Connected)
-            {
-                //split by comma
-                string[] param = commands.Split(',');
-                string[] lon_lat = { param[0], param[1],param[21] }; // for lon and lat
-                return lon_lat;
-            }
-            else
-            {
-                return null;
-            }
-
+            return int.Parse(x);
         }
     }
 }
