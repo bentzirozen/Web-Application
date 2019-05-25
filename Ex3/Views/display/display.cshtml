@@ -3,6 +3,7 @@
 }
 <img id="map" src="~/Image/export-map-share.png" style="height:100%;width:100%;border-width:0px;" />
 <canvas id="myCanvas" width="900" height="900" />
+<h2>my app</h2>
 <p>lat =  @Session["lat"] , lon = @Session["lon"] thr = @Session["thr"]</p>
 <script>
         var img = document.getElementById("map");
@@ -17,8 +18,10 @@
         ctx.fillStyle = 'red';
         ctx.fill();
         ctx.stroke();
-        setTimeout(function () {
-            window.location.reload(1);
-        }, 250);
+        if(@Session["refresh"] == 1) {
+            setTimeout(function () {
+                window.location.reload(1);
+            }, 1000/@Session["rate"]);
+        }
 </script>
 

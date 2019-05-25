@@ -23,15 +23,22 @@ namespace Ex3.Controllers
         // 
         // GET: /display/Welcome/ 
         [HttpGet]
-        public ActionResult display(string ip, int port)
+        public ActionResult display(string ip, int port,int refreshRate=0)
         {
             Comunication.Instance.Connect(ip, port);
             int lon = Comunication.Instance.read_from_simulator("get /position/longitude-deg\r\n");
             int lat = Comunication.Instance.read_from_simulator("get /position/latitude-deg\r\n");
-            int tr = Comunication.Instance.read_from_simulator("get /controls/engines/current-engine/throttle\r\n");
+            if (refreshRate == 0)
+            {
+                Session["refresh"] = 0;
+            }
+            else
+            {
+                Session["refresh"] = 1;
+                Session["rate"] = refreshRate;
+            }
             Session["lon"] = lon+180;
-            Session["lat"] = lat;
-            Session["thr"] = tr;
+            Session["lat"] = lat+90;
             return View("~/Views/display/display.cshtml");
         }
     }
