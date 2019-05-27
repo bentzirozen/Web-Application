@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Ex3
+namespace Ex3.Models
 {
     class Comunication
     {
@@ -21,7 +21,9 @@ namespace Ex3
         private BinaryReader reader; // reader
         public bool Stop { get; set; } = false;
         public bool Connected { get; set; } = false; // is the clinet connected?
-
+        public string IP { get; set; }
+        public int Port { get; set; }
+        public TcpClient Client { get; set; }
         #region Singleton
         private static Comunication m_Instance = null;
         public static Comunication Instance
@@ -38,11 +40,12 @@ namespace Ex3
         #endregion
 
         // open server with ip and port
-        public void Connect(string ip, int port)
+        public void Connect()
         {
             if (client != null) return;
-            IPEndPoint ep = new IPEndPoint(IPAddress.Parse(ip), port);
-            client = new TcpClient();
+            IPEndPoint ep = new IPEndPoint(IPAddress.Parse(IP), Port);
+            Client = new TcpClient();
+            client = Client;
             while (!client.Connected) // keep trynig to connect
             {
                 try { client.Connect(ep); }
@@ -55,7 +58,7 @@ namespace Ex3
         }
         public int read_from_simulator(string command)
         { //for empty fommands
-            stream = client.GetStream();
+            stream = Client.GetStream();
             string x = "";
             Byte[] data = Encoding.ASCII.GetBytes(command);
             stream.Write(data, 0, data.Length);
@@ -73,6 +76,20 @@ namespace Ex3
                 x = Regex.Match(responseData, (@"\d+")).Value;
             }
             return int.Parse(x);
+        }
+        public void CreateFile(string filePath)
+        {
+            StreamWriter streamWriter = new StreamWriter(filePath);
+            string first = "lon";
+            string second = "lat";
+           // streamWriter.WriteLineAsync("aka"); // the writing needs to be done in another func.
+            string check = string.Format("{0},{1}", first, second);
+            streamWriter.WriteLineAsync(check);
+            first = "157.26265959";
+            second = "21.64784";
+            check = string.Format("{0},{1}", first, second);
+            streamWriter.WriteLineAsync(check);
+            streamWriter.Close(); // closing will also be in it's own func.
         }
     }
 }
