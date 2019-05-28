@@ -13,7 +13,7 @@ namespace Ex3.Controllers
 {
     public class MainController : Controller
     {
-        static Timer timer;
+        
         private static int rate;
         private static int time;
         const int MaxTimeInterval = 1000000;
@@ -36,13 +36,11 @@ namespace Ex3.Controllers
         [HttpGet]
         public ActionResult display(string ip, int port,int refreshRate=0,int time=MaxTimeInterval)
         {
-            Random rnd = new Random();
-            Comunication.Instance.IP = ip;
-            Comunication.Instance.Port = port;
-            Comunication.Instance.Connect();
+            Comunication info = Comunication.Instance;
+            info.IP = ip;
+            info.Port = port;
+            info.Connect();
             rate = refreshRate;
-            int lon = Comunication.Instance.read_from_simulator("get /position/longitude-deg\r\n");
-            int lat = Comunication.Instance.read_from_simulator("get /position/latitude-deg\r\n");
             if (refreshRate == 0)
             {
                 Session["refresh"] = 0;
@@ -50,13 +48,11 @@ namespace Ex3.Controllers
             else
             {
                 Session["refresh"] = 1;
-                Session["rate"] = refreshRate;
+                Session["refreshRate"] = refreshRate;
             }
             Session["time"] = time;
-            Session["lon"] = rnd.Next(1000);
-            Session["lat"] = rnd.Next(1000);
-            lonList.Add(lon.ToString());
-            latList.Add(lat.ToString());
+            Session["lat"] = info.Lat;
+            Session["lon"] = info.Lon;
             return View("~/Views/Main/display.cshtml");
         }
         [HttpGet]
@@ -67,45 +63,50 @@ namespace Ex3.Controllers
         [HttpGet]
         public ActionResult save(string ip,int port,int refreshRate,int timeout,string fileName)
         {
-            Comunication.Instance.IP = ip;
-            Comunication.Instance.Port = port;
-            Comunication.Instance.Connect();
+            Comunication info = Comunication.Instance;
+            info.IP = ip;
+            info.Port = port;
+            info.Connect();
             rate = refreshRate;
             time = timeout;
-            Session["rate"] = refreshRate;
+            Session["refreshRate"] = refreshRate;
             Session["timeout"] = timeout;
-            string path = AppDomain.CurrentDomain.BaseDirectory + fileName + ".csv";
-            Session["path"] = path;
-            
+            info.FilePath = AppDomain.CurrentDomain.BaseDirectory + fileName + ".csv";
             return View("~/Views/Main/save.cshtml");
         }
         [HttpPost]
-        public void CreateFile()
+        public void OpenFile()
         {
-            for(int i = 0; i < 40; i++)
-            {
-                refresh();
-                System.Threading.Thread.Sleep(250);
-            }
-            string filePath = Session["path"] as string;
-            StreamWriter streamWriter = new StreamWriter(filePath);
-            string first = "lon";
-            string second = "lat";
-            // streamWriter.WriteLineAsync("aka"); // the writing needs to be done in another func.
-            string check = string.Format("{0},{1}", first, second);
-            streamWriter.WriteLineAsync(check);
-            for(int i = 0; i < lonList.Count; i++)
-            {
-                check = string.Format("{0},{1}", lonList[i], latList[i]);
-                streamWriter.WriteLineAsync(check);
-            }
-           
-            streamWriter.Close(); // closing will also be in it's own func.
+            Comunication.Instance.CreateFile();
+        }
+        [HttpPost]
+        public void WriteFile()
+        {
+            Comunication.Instance.WriteFile();
         }
 
-        public void refresh()
+        private string ToXml(Comunication info)
         {
-            display(Comunication.Instance.IP, Comunication.Instance.Port, rate);
+            //Initiate XML stuff
+            StringBuilder sb = new StringBuilder();
+            XmlWriterSettings settings = new XmlWriterSettings();
+            XmlWriter writer = XmlWriter.Create(sb, settings);
+
+            writer.WriteStartDocument();
+
+            info.ToXml(writer);
+
+            writer.WriteEndDocument();
+            writer.Flush();
+            return sb.ToString();
+        }
+        [HttpPost]
+        public string getData()
+        {
+            Comunication info = Comunication.Instance;
+            info.Lon = info.read_from_simulator("get /position/longitude-deg\r\n");
+            info.Lat = info.read_from_simulator("get /position/latitude-deg\r\n");
+            return ToXml(info);
         }
 
     }

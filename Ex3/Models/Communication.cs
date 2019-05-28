@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Ex3.Models
 {
@@ -19,10 +20,36 @@ namespace Ex3.Models
         private TcpListener server; // server
         private BinaryWriter writer;
         private BinaryReader reader; // reader
+        private string lon;
+        private string lat;
+        private StreamWriter streamWriter;
+        public string Lon
+        {
+            get
+            {
+                return lon;
+            }
+            set
+            {
+                lon = value;
+            }
+        }
+        public string Lat
+        {
+            get
+            {
+                return lat;
+            }
+            set
+            {
+                lat = value;
+            }
+        }
         public bool Stop { get; set; } = false;
         public bool Connected { get; set; } = false; // is the clinet connected?
         public string IP { get; set; }
         public int Port { get; set; }
+        public string FilePath { get; set; }
         public TcpClient Client { get; set; }
         #region Singleton
         private static Comunication m_Instance = null;
@@ -56,7 +83,7 @@ namespace Ex3.Models
             stream = client.GetStream();
 
         }
-        public int read_from_simulator(string command)
+        public string read_from_simulator(string command)
         { //for empty fommands
             stream = Client.GetStream();
             string x = "";
@@ -75,21 +102,30 @@ namespace Ex3.Models
             {
                 x = Regex.Match(responseData, (@"\d+")).Value;
             }
-            return int.Parse(x);
+            return x;
         }
-        public void CreateFile(string filePath)
+        public void CreateFile()
         {
-            StreamWriter streamWriter = new StreamWriter(filePath);
-            string first = "lon";
-            string second = "lat";
-           // streamWriter.WriteLineAsync("aka"); // the writing needs to be done in another func.
-            string check = string.Format("{0},{1}", first, second);
-            streamWriter.WriteLineAsync(check);
-            first = "157.26265959";
-            second = "21.64784";
-            check = string.Format("{0},{1}", first, second);
-            streamWriter.WriteLineAsync(check);
-            streamWriter.Close(); // closing will also be in it's own func.
+            if(streamWriter ==null)
+            streamWriter = new StreamWriter(FilePath);
+            
+        }
+        public void WriteFile()
+        {
+            if (streamWriter == null)
+            {
+                streamWriter = new StreamWriter(FilePath);
+            }
+            string lon_lat = this.Lon.ToString() + "," + this.Lat.ToString();
+            streamWriter.WriteLineAsync(lon_lat);
+            streamWriter.Close();
+        }
+        public void ToXml(XmlWriter writer)
+        {
+            writer.WriteStartElement("Data");
+            writer.WriteElementString("lon", lon);
+            writer.WriteElementString("lat", lat);
+            writer.WriteEndElement();
         }
     }
 }

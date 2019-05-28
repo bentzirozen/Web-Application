@@ -7,9 +7,38 @@
 <p>lat =  @Session["lat"] , lon = @Session["lon"] thr = @Session["thr"]</p>
 <script src="~/Scripts/jquery-1.10.2.js"></script>
 <script>
-    var IntervalTime = @Session["timeout"] * 1000
-    $.post("@Url.Action("CreateFile")");
-    
+    var isStop = false;
+    $.post("@Url.Action("OpenFile")");
+    var IntervalTime = 1000 / @Session["refreshRate"]
+    var IntervalTimeout = @Session["timeout"] * 1000
+    function drawAndSavePlanePath() {
+        var img = document.getElementById("map");
+        var cnvs = document.getElementById("myCanvas");
+        cnvs.style.position = "absolute";
+        cnvs.style.left = img.offsetLeft + "px";
+        cnvs.style.top = img.offsetTop + "px";
+        var ctx = cnvs.getContext("2d");
+        ctx.beginPath();
+        if (IntervalTimeout <= 0) {
+            clearInterval(functionIntervalId);
+        }
+        $.post("@Url.Action("getData")").done(function (xml) {
+            var xmlDoc = $.parseXML(xml),
+            $xml = $(xmlDoc),
+            NetworkLat = $xml.find("Lat").text();
+            NetworkLon = $xml.find("Lon").text();
+            ctx.arc("800", "200", 4, 0, 4 * Math.PI);
+            ctx.strokeStyle = "blue";
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.stroke();
+            $.post("@Url.Action("WriteFile")");
+        });
+        IntervalTimeout -= IntervalTime;
+    }
+    var functionIntervalId = setInterval(drawAndSavePlanePath, IntervalTime);
+    drawAndSavePlanePath();
+
 
 
 
