@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -23,6 +24,8 @@ namespace Ex3.Models
         private string lon;
         private string lat;
         private StreamWriter streamWriter;
+        private static Mutex mutex=new Mutex();
+        private static bool file_open = false;
         public string Lon
         {
             get
@@ -106,19 +109,32 @@ namespace Ex3.Models
         }
         public void CreateFile()
         {
-            if(streamWriter ==null)
             streamWriter = new StreamWriter(FilePath);
+            file_open = true;
             
         }
         public void WriteFile()
         {
-            if (streamWriter == null)
+            if (file_open == true)
             {
-                streamWriter = new StreamWriter(FilePath);
+                mutex.WaitOne();
+                {
+                    string lon_lat = this.Lon.ToString() + "," + this.Lat.ToString();
+                    streamWriter.WriteLineAsync(lon_lat);
+                }
+                mutex.ReleaseMutex();
             }
-            string lon_lat = this.Lon.ToString() + "," + this.Lat.ToString();
-            streamWriter.WriteLineAsync(lon_lat);
-            streamWriter.Close();
+        }
+        public void CloseFile()
+        {
+            mutex.WaitOne();
+            {
+                streamWriter.Close();
+                file_open = false;
+
+            }
+            mutex.ReleaseMutex();
+            
         }
         public void ToXml(XmlWriter writer)
         {

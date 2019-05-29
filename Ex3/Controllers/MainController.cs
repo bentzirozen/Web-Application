@@ -43,11 +43,10 @@ namespace Ex3.Controllers
             rate = refreshRate;
             if (refreshRate == 0)
             {
-                Session["refresh"] = 0;
+                Session["refreshRate"] = 0.1;
             }
             else
             {
-                Session["refresh"] = 1;
                 Session["refreshRate"] = refreshRate;
             }
             Session["time"] = time;
@@ -107,6 +106,11 @@ namespace Ex3.Controllers
             info.Lon = info.read_from_simulator("get /position/longitude-deg\r\n");
             info.Lat = info.read_from_simulator("get /position/latitude-deg\r\n");
             return ToXml(info);
+        }
+        [HttpPost]
+        public void CloseFile()
+        {
+            Comunication.Instance.CloseFile();
         }
 
     }

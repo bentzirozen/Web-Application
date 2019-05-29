@@ -9,7 +9,7 @@
 <script>
     var isStop = false;
     $.post("@Url.Action("OpenFile")");
-    var IntervalTime = 1000 / @Session["refreshRate"]
+    var IntervalTime = 1000 * @Session["refreshRate"]
     var IntervalTimeout = @Session["timeout"] * 1000
     function drawAndSavePlanePath() {
         var img = document.getElementById("map");
@@ -21,6 +21,7 @@
         ctx.beginPath();
         if (IntervalTimeout <= 0) {
             clearInterval(functionIntervalId);
+            $.post("@Url.Action("CloseFile")");
         }
         $.post("@Url.Action("getData")").done(function (xml) {
             var xmlDoc = $.parseXML(xml),

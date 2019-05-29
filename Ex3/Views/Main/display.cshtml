@@ -14,7 +14,7 @@
 </head>
 <body>
     <script>
-        var interval = 1000 / @Session["refreshRate"]
+        var interval = 1000 * @Session["refreshRate"]
         myTimer = (function () {
             var img = document.getElementById("map");
             var cnvs = document.getElementById("myCanvas");
@@ -28,19 +28,16 @@
                 $xml = $(xmlDoc);       
                 //document.getElementById("location").style.cx = $xml.find("lat").text();
                 //document.getElementById("location").style.cy = $xml.find("lon").text();
-                ctx.arc("800", "200", 4, 0, 4 * Math.PI);
+                ctx.arc("100", "50", 4, 0, 4 * Math.PI);
                 ctx.strokeStyle = "blue";
                 ctx.fillStyle = 'red';
                 ctx.fill();
                 ctx.stroke();
 
             });
-        });
-        if (@Session["refresh"]==1) {
-            setInterval(myTimer, interval);
-        } else {
-            myTimer.call();
-        }
+        });     
+       setInterval(myTimer, interval);
+        
 
 
     </script>
