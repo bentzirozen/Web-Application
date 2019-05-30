@@ -8,6 +8,7 @@ using System.Text;
 using System.Xml;
 using System.IO;
 using System.Timers;
+using System.Net;
 
 namespace Ex3.Controllers
 {
@@ -16,7 +17,8 @@ namespace Ex3.Controllers
         
         private static int rate;
         private static int time;
-        const int MaxTimeInterval = 1000000;
+        private static int index=0;
+        private static string[] data = { };
         private static List<string> lonList = new List<string>();
         private static List<string> latList = new List<string>();
         private static int i;
@@ -26,34 +28,47 @@ namespace Ex3.Controllers
         public ActionResult Index()
         {
 
-            Session["lon"] = 200;
-            Session["lat"] = 200;
-            return View("~/Views/display/display.cshtml");
+            return View();
         }
 
         // 
         // GET: /display/Welcome/ 
         [HttpGet]
-        public ActionResult display(string ip, int port,int refreshRate=0,int time=MaxTimeInterval)
+        public ActionResult display(string ip, int port, int refreshRate = 0)
         {
+            IPAddress ipAdress;
             Comunication info = Comunication.Instance;
-            info.IP = ip;
-            info.Port = port;
-            info.Connect();
-            rate = refreshRate;
-            if (refreshRate == 0)
+            //check its an ip and make the display for it
+            if (IPAddress.TryParse(ip, out ipAdress))
             {
-                Session["refreshRate"] = 0.1;
+                info.IP = ip;
+                info.Port = port;
+                info.Connect();
+                rate = refreshRate;
+                Session["fromSimulatior"] = 1;
+                if (refreshRate == 0)
+                {
+                    return View("~/Views/Main/display2params.cshtml");
+                }
+                else
+                {
+                    Session["refreshRate"] = refreshRate;
+                }
+                Session["time"] = time;
+                return View("~/Views/Main/display.cshtml");
             }
+            //in case its the display of file name and rate
             else
             {
-                Session["refreshRate"] = refreshRate;
+                index = 0;
+                info.FilePath = AppDomain.CurrentDomain.BaseDirectory + ip + ".csv";
+                data = System.IO.File.ReadAllLines(info.FilePath);
+                Session["refreshRate"] = port;
+                return View("~/Views/Main/displayFromFile.cshtml");
             }
-            Session["time"] = time;
-            Session["lat"] = info.Lat;
-            Session["lon"] = info.Lon;
-            return View("~/Views/Main/display.cshtml");
         }
+       
+
         [HttpGet]
         public ActionResult dispaly(string fileName,int rate)
         {
@@ -105,12 +120,30 @@ namespace Ex3.Controllers
             Comunication info = Comunication.Instance;
             info.Lon = info.read_from_simulator("get /position/longitude-deg\r\n");
             info.Lat = info.read_from_simulator("get /position/latitude-deg\r\n");
+            info.Throttle = info.read_from_simulator("get /controls/engines/current-engine/throttle\r\n");
+            info.Rudder = info.read_from_simulator("get /controls/flight/rudder\r\n");
             return ToXml(info);
         }
         [HttpPost]
         public void CloseFile()
         {
             Comunication.Instance.CloseFile();
+        }
+        [HttpPost]
+        public string getDataFromFile()
+        {
+            if (index >= (data.Length - 1)){
+                return null;
+            }
+            Comunication info = Comunication.Instance;
+
+            string[] x = data[index].Split(',');
+            info.Lon = x[0];
+            info.Lat = x[1];
+            info.Throttle = x[2];
+            info.Rudder = x[3];
+            index++;
+            return ToXml(info);
         }
 
     }

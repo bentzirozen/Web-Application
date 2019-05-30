@@ -190,6 +190,8 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Main\display.cshtml" />
     <Content Include="Views\Main\save.cshtml" />
+    <Content Include="Views\Main\display2params.cshtml" />
+    <Content Include="Views\Main\displayFromFile.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

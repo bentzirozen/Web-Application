@@ -23,6 +23,8 @@ namespace Ex3.Models
         private BinaryReader reader; // reader
         private string lon;
         private string lat;
+        private string thr;
+        private string rud;
         private StreamWriter streamWriter;
         private static Mutex mutex=new Mutex();
         private static bool file_open = false;
@@ -46,6 +48,28 @@ namespace Ex3.Models
             set
             {
                 lat = value;
+            }
+        }
+        public string Throttle
+        {
+            get
+            {
+                return thr;
+            }
+            set
+            {
+                thr = value;
+            }
+        }
+        public string Rudder
+        {
+            get
+            {
+                return rud;
+            }
+            set
+            {
+                rud = value;
             }
         }
         public bool Stop { get; set; } = false;
@@ -100,12 +124,9 @@ namespace Ex3.Models
             // Read the first batch of the TcpServer response bytes.
             Int32 bytes = stream.Read(data, 0, data.Length);
             responseData = Encoding.ASCII.GetString(data, 0, bytes);
-            x = Regex.Match(responseData, (@"[\-\+]\d+")).Value;
-            if (x == "")
-            {
-                x = Regex.Match(responseData, (@"\d+")).Value;
-            }
-            return x;
+            //extract number from the response
+            return Regex.Match(responseData, (@"[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)")).Value;
+           
         }
         public void CreateFile()
         {
@@ -115,13 +136,17 @@ namespace Ex3.Models
         }
         public void WriteFile()
         {
+            //if the file is open you can write
             if (file_open == true)
             {
+                //lock 
                 mutex.WaitOne();
                 {
-                    string lon_lat = this.Lon.ToString() + "," + this.Lat.ToString();
-                    streamWriter.WriteLineAsync(lon_lat);
+                    string data = this.Lon.ToString() + "," + this.Lat.ToString() + 
+                        "," + this.Throttle.ToString() + "," + this.Rudder.ToString();
+                    streamWriter.WriteLineAsync(data);
                 }
+                //unlock
                 mutex.ReleaseMutex();
             }
         }
@@ -129,6 +154,7 @@ namespace Ex3.Models
         {
             mutex.WaitOne();
             {
+                //close the file
                 streamWriter.Close();
                 file_open = false;
 

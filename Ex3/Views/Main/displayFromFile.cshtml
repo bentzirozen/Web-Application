@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "display";
+    ViewBag.Title = "displayFromFile";
 }
 <!DOCTYPE html>
 
@@ -12,16 +12,17 @@
 <body background="~/Image/export-map-share.png" style="background-size:cover;background-attachment:fixed">
     <canvas id="myCanvas"></canvas>
     <script>
-        var points = []
-        var IntervalTime = 1000 * @Session["refreshRate"]
-        myTimer = (function () {
-            $.post("@Url.Action("getData", "Main")").done(function (xml) {
+        var points = [];
+        var IntervalTime = 1000 * @Session["refreshRate"];
+            
+            myTimer = (function () {
+            $.post("@Url.Action("getDataFromFile", "Main")").done(function (xml) {
                 var xmlDoc = $.parseXML(xml);
                 $xml = $(xmlDoc);
                 lon = parseFloat($xml.find("lon").text());
                 lat = parseFloat($xml.find("lat").text());
-                var lonP = Math.floor(Math.random() * ($(window).width()));
-                var latP = Math.floor(Math.random()* ($(window).height()));
+                var lonP = (lon + 180) * ($(window).width()/360);
+                var latP = (lat + 90) * ($(window).height()/180);
                 var canvas = document.getElementById("myCanvas");
                 var ctx = canvas.getContext("2d");
                 ctx.canvas.width = window.innerWidth;

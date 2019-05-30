@@ -1,47 +1,56 @@
 ﻿@{
     ViewBag.Title = "save";
 }
-<img id="map" src="~/Image/export-map-share.png" style="height:100%;width:100%;border-width:0px;" />
-<canvas id="myCanvas" width="900" height="900" />
-<h2>my app</h2>
-<p>lat =  @Session["lat"] , lon = @Session["lon"] thr = @Session["thr"]</p>
-<script src="~/Scripts/jquery-1.10.2.js"></script>
-<script>
-    var isStop = false;
-    $.post("@Url.Action("OpenFile")");
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="~/Content/bootstrap.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width" />
+</head>
+<body background="~/Image/export-map-share.png" style="background-size:cover;background-attachment:fixed">
+    <canvas id="myCanvas"></canvas>
+    <script>
+    
+        $.post("@Url.Action("OpenFile")");
+    var points = []
     var IntervalTime = 1000 * @Session["refreshRate"]
     var IntervalTimeout = @Session["timeout"] * 1000
-    function drawAndSavePlanePath() {
-        var img = document.getElementById("map");
-        var cnvs = document.getElementById("myCanvas");
-        cnvs.style.position = "absolute";
-        cnvs.style.left = img.offsetLeft + "px";
-        cnvs.style.top = img.offsetTop + "px";
-        var ctx = cnvs.getContext("2d");
-        ctx.beginPath();
+    function draw_save() {
         if (IntervalTimeout <= 0) {
             clearInterval(functionIntervalId);
             $.post("@Url.Action("CloseFile")");
         }
         $.post("@Url.Action("getData")").done(function (xml) {
-            var xmlDoc = $.parseXML(xml),
-            $xml = $(xmlDoc),
-            NetworkLat = $xml.find("Lat").text();
-            NetworkLon = $xml.find("Lon").text();
-            ctx.arc("800", "200", 4, 0, 4 * Math.PI);
+            var xmlDoc = $.parseXML(xml);
+            $xml = $(xmlDoc);
+            lon = parseFloat($xml.find("lon").text());
+            lat = parseFloat($xml.find("lat").text());
+            var lonP = Math.floor(Math.random() * ($(window).width()));
+            var latP = Math.floor(Math.random() * ($(window).height()));
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.canvas.width = window.innerWidth;
+            ctx.canvas.height = window.innerHeight;
+            ctx.beginPath();
+            ctx.arc(lonP, latP, 4, 0, 3 * Math.PI);
             ctx.strokeStyle = "blue";
             ctx.fillStyle = 'red';
             ctx.fill();
+            ctx.stroke();
+            var point = { x: lonP, y: latP }
+            points.push(point)
+            ctx.moveTo(points[0].x, points[0].y);
+            for (var i = 0; i < points.length; i++) {
+                ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.strokeStyle = 'blue';
             ctx.stroke();
             $.post("@Url.Action("WriteFile")");
         });
         IntervalTimeout -= IntervalTime;
     }
-    var functionIntervalId = setInterval(drawAndSavePlanePath, IntervalTime);
-    drawAndSavePlanePath();
-
-
-
-
-
-</script>
+    var functionIntervalId = setInterval(draw_save, IntervalTime);
+    draw_save();
+    </script>
+</body>
+</html>

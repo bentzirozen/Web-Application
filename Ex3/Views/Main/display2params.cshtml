@@ -1,0 +1,47 @@
+﻿
+@{
+    ViewBag.Title = "display";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="~/Content/bootstrap.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width" />
+
+
+</head>
+<body background="~/Image/export-map-share.png" style="background-size:cover;background-attachment:fixed">
+    
+        <canvas id="myCanvas"></canvas>
+        <script>
+
+        $.post("@Url.Action("getData", "Main")").done(function (xml) {
+            var xmlDoc = $.parseXML(xml);
+            $xml = $(xmlDoc);
+            lon =parseFloat($xml.find("lon").text());
+            lat = parseFloat($xml.find("lat").text());
+            var lonP = (lon + 180) * ($(window).width() / 360);
+            var latP = (lat + 90) * ($(window).height()/180)
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.canvas.width = window.innerWidth;
+            ctx.canvas.height = window.innerHeight;
+            ctx.beginPath();
+            ctx.arc(lonP, latP, 4, 0, 3 * Math.PI);
+            ctx.strokeStyle = "blue";
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.stroke();
+            });
+
+
+
+
+
+        </script>
+       </body>
+</html>
+
+
