@@ -15,6 +15,7 @@ namespace Ex3.Controllers
 {
     public class MainController : Controller
     {
+        //relevant for display from files
         private static int index=0;
         private static string[] data = { };
         [HttpGet]

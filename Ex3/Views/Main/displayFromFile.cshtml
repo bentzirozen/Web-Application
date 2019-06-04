@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "displayFromFile";
+    ViewBag.Title = "Display From File";
 }
 <!DOCTYPE html>
 
@@ -16,7 +16,7 @@
 
         var points = [];
         var IntervalTime = 1000 * @Session["refreshRate"];
-        //how much time for presenting data
+        //how much time for presenting data (minus 1 for the first)
         var IntervalTimeout = (@Session["data"] -1) * IntervalTime
         myTimer = (function () {
             if (IntervalTimeout <= 0) {
