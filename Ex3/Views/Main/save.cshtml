@@ -25,8 +25,8 @@
             $xml = $(xmlDoc);
             lon = parseFloat($xml.find("lon").text());
             lat = parseFloat($xml.find("lat").text());
-            var lonP = Math.floor(Math.random() * ($(window).width()));
-            var latP = Math.floor(Math.random() * ($(window).height()));
+            var lonP = (lon + 180) * ($(window).width() / 360);
+            var latP = (lat + 90) * ($(window).height() / 180);
             var canvas = document.getElementById("myCanvas");
             var ctx = canvas.getContext("2d");
             ctx.canvas.width = window.innerWidth;

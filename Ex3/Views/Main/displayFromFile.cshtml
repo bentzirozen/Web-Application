@@ -12,15 +12,23 @@
 <body background="~/Image/export-map-share.png" style="background-size:cover;background-attachment:fixed">
     <canvas id="myCanvas"></canvas>
     <script>
+        //all points
+
         var points = [];
         var IntervalTime = 1000 * @Session["refreshRate"];
-            
-            myTimer = (function () {
-            $.post("@Url.Action("getDataFromFile", "Main")").done(function (xml) {
+        //how much time for presenting data
+        var IntervalTimeout = (@Session["data"] -1) * IntervalTime
+        myTimer = (function () {
+            if (IntervalTimeout <= 0) {
+                clearInterval(x);
+                alert("finished reading from file!")
+            }
+                $.post("@Url.Action("getDataFromFile", "Main")").done(function (xml) {
                 var xmlDoc = $.parseXML(xml);
                 $xml = $(xmlDoc);
                 lon = parseFloat($xml.find("lon").text());
                 lat = parseFloat($xml.find("lat").text());
+                //fit lon and lat to be on screen
                 var lonP = (lon + 180) * ($(window).width()/360);
                 var latP = (lat + 90) * ($(window).height()/180);
                 var canvas = document.getElementById("myCanvas");
@@ -43,9 +51,10 @@
                 ctx.stroke();
 
             });
+                IntervalTimeout -= IntervalTime;
         });
-        setInterval(myTimer, IntervalTime);
-        myTimer();
+       var x = setInterval(myTimer, IntervalTime);
+       myTimer();
 
 
 
